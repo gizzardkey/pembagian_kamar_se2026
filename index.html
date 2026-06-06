@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Pembagian Kamar Pelatihan</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style/dist/xlsx.bundle.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "system-ui", "sans-serif"]
+          },
+          colors: {
+            base: {
+              50: "#f8fafc",
+              100: "#f1f5f9",
+              200: "#e2e8f0",
+              300: "#cbd5e1",
+              400: "#94a3b8",
+              500: "#64748b",
+              600: "#475569",
+              700: "#334155",
+              800: "#1e293b",
+              900: "#0f172a"
+            }
+          }
+        }
+      }
+    };
+  </script>
+</head>
+
+<body class="min-h-screen bg-base-100 text-base-800 antialiased">
+  <div id="toastContainer" class="fixed top-4 right-4 z-[100] flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Mobile Header -->
+  <header class="lg:hidden sticky top-0 z-40 bg-base-900 text-white border-b border-white/10">
+    <div class="flex items-center justify-between px-4 py-3">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-600">
+          <i data-lucide="bed-double" class="h-5 w-5"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-bold leading-tight">Pembagian Kamar</h1>
+          <p class="text-[11px] text-white/60">Roomlist Pelatihan</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="toggleDarkMode()" class="rounded-lg p-2 hover:bg-white/10" title="Dark Mode">
+          <i data-lucide="moon" class="h-5 w-5"></i>
+        </button>
+        <button type="button" onclick="toggleSidebar()" class="rounded-lg p-2 hover:bg-white/10" title="Menu">
+          <i data-lucide="menu" class="h-5 w-5"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 z-40 hidden bg-black/50 lg:hidden"></div>
+
+  <div class="flex min-h-screen">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar w-full lg:w-80 xl:w-96 bg-white border-r border-base-200 flex-shrink-0 flex flex-col h-screen lg:sticky lg:top-0 overflow-y-auto">
+      <div class="border-b border-base-100 p-6">
+        <div class="flex items-center gap-3">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 shadow-lg shadow-teal-500/20">
+            <i data-lucide="bed-double" class="h-6 w-6 text-white"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-extrabold text-base-900">Pembagian Kamar</h1>
+            <p class="text-xs font-medium text-base-500">Pelatihan Petugas SE2026</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 pt-4">
+        <button type="button" onclick="toggleDarkMode()" class="flex w-full items-center justify-center gap-2 rounded-xl border border-base-200 bg-base-50 px-3 py-2 text-xs font-semibold text-base-600 transition hover:bg-base-100">
+          <i data-lucide="moon" class="h-4 w-4"></i>
+          <span id="darkModeLabel">Dark Mode</span>
+        </button>
+      </div>
+
+      <!-- Stepper -->
+      <section class="px-6 py-5">
+        <p class="mb-4 text-xs font-extrabold uppercase tracking-wider text-base-400">Alur Kerja</p>
+
+        <div class="space-y-0">
+          <div class="flex gap-4 relative">
+            <div class="relative flex flex-col items-center">
+              <div id="stepDot1" class="step-dot done">
+                <i data-lucide="check" class="h-4 w-4"></i>
+              </div>
+              <div id="stepLine1" class="step-line active"></div>
+            </div>
+            <div class="pb-6 pt-0.5">
+              <p class="text-sm font-bold text-base-800">Konfigurasi</p>
+              <p class="mt-0.5 text-xs text-base-500">Atur judul, hotel, dan tanggal</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 relative">
+            <div class="relative flex flex-col items-center">
+              <div id="stepDot2" class="step-dot pending">
+                <span id="stepNum2">2</span>
+              </div>
+              <div id="stepLine2" class="step-line"></div>
+            </div>
+            <div class="pb-6 pt-0.5">
+              <p class="text-sm font-bold text-base-800">Upload Data</p>
+              <p class="mt-0.5 text-xs text-base-500">File peserta dan daftar kamar</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 relative">
+            <div class="relative flex flex-col items-center">
+              <div id="stepDot3" class="step-dot pending">
+                <span id="stepNum3">3</span>
+              </div>
+            </div>
+            <div class="pt-0.5">
+              <p class="text-sm font-bold text-base-800">Hasil & Validasi</p>
+              <p class="mt-0.5 text-xs text-base-500">Pembagian otomatis dan cek ulang</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Configuration -->
+      <section class="border-t border-base-100 px-6 py-4">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-wider text-base-400">Pengaturan</p>
+
+        <div class="space-y-3">
+          <div>
+            <label for="judulRoomlist" class="mb-1 block text-xs font-bold text-base-600">Judul Roomlist</label>
+            <input id="judulRoomlist" type="text" value="ROOMLIST PELATIHAN PETUGAS SE2026 BPS KABUPATEN GARUT" class="input-app" />
+          </div>
+
+          <div>
+            <label for="namaHotel" class="mb-1 block text-xs font-bold text-base-600">Nama Hotel / Gelombang</label>
+            <input id="namaHotel" type="text" value="HOTEL AGUSTA GELOMBANG 1" class="input-app" />
+          </div>
+
+          <div>
+            <label for="infoTanggal" class="mb-1 block text-xs font-bold text-base-600">Info Check In / Out</label>
+            <input id="infoTanggal" type="text" value="Cek In : 1 Juni 2026, Cek Out : 4 Juni 2026" class="input-app" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Upload -->
+      <section class="border-t border-base-100 px-6 py-4">
+        <p class="mb-3 text-xs font-extrabold uppercase tracking-wider text-base-400">Upload Data</p>
+
+        <div id="uploadPesertaBox" class="upload-item group mb-3 cursor-pointer rounded-xl p-3">
+          <input id="filePeserta" type="file" accept=".xlsx,.xls" class="hidden" onchange="handleFile('peserta')" />
+          <div onclick="document.getElementById('filePeserta').click()" class="flex items-center gap-3">
+            <div id="iconPeserta" class="flex h-11 w-11 items-center justify-center rounded-xl border border-base-200 bg-base-100 transition group-hover:border-teal-300">
+              <i data-lucide="users" class="h-5 w-5 text-base-400 transition group-hover:text-teal-600"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-bold text-base-800">Data Peserta</p>
+              <p id="statusPeserta" class="truncate text-xs text-base-500">Klik untuk pilih file .xlsx</p>
+            </div>
+            <i data-lucide="chevron-right" class="h-4 w-4 text-base-300"></i>
+          </div>
+        </div>
+
+        <div id="uploadKamarBox" class="upload-item group mb-3 cursor-pointer rounded-xl p-3">
+          <input id="fileKamar" type="file" accept=".xlsx,.xls" class="hidden" onchange="handleFile('kamar')" />
+          <div onclick="document.getElementById('fileKamar').click()" class="flex items-center gap-3">
+            <div id="iconKamar" class="flex h-11 w-11 items-center justify-center rounded-xl border border-base-200 bg-base-100 transition group-hover:border-indigo-300">
+              <i data-lucide="door-open" class="h-5 w-5 text-base-400 transition group-hover:text-indigo-600"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-bold text-base-800">Daftar Kamar</p>
+              <p id="statusKamar" class="truncate text-xs text-base-500">Klik untuk pilih file .xlsx</p>
+            </div>
+            <i data-lucide="chevron-right" class="h-4 w-4 text-base-300"></i>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-base-200 bg-base-50 p-3">
+          <div class="mb-2 flex items-center justify-between">
+            <span class="text-xs font-bold text-base-600">Kapasitas / Kamar</span>
+            <span id="kapasitasDisplay" class="text-xl font-extrabold tabular-nums text-teal-600">4</span>
+          </div>
+          <input id="kapasitasRange" type="range" min="1" max="10" value="4" class="w-full accent-teal-600" oninput="syncCapacity(this.value)" />
+          <input id="kapasitasKamar" type="number" value="4" min="1" max="20" class="hidden" />
+          <div class="mt-1 flex justify-between text-[10px] font-semibold text-base-400">
+            <span>1</span>
+            <span>5</span>
+            <span>10</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Desktop Actions -->
+      <section class="desktop-actions mt-auto border-t border-base-100 px-6 py-4">
+        <div class="mb-2 grid grid-cols-2 gap-2">
+          <button id="btnProses" type="button" onclick="prosesSemuaFile()" class="action-primary col-span-2">
+            <i data-lucide="play" class="h-4 w-4 fill-current"></i>
+            Proses Pembagian
+          </button>
+
+          <button type="button" onclick="validasiPembagianKamar()" class="action-secondary">
+            <i data-lucide="shield-check" class="h-4 w-4 text-teal-600"></i>
+            Cek Ulang
+          </button>
+
+          <button type="button" onclick="openPreviewDownload()" class="action-secondary">
+            <i data-lucide="download" class="h-4 w-4 text-emerald-600"></i>
+            Download
+        </button>
+        </div>
+
+        <div class="flex gap-2">
+          <button type="button" onclick="downloadTemplatePeserta()" class="action-mini flex-1">
+            <i data-lucide="file-text" class="h-3.5 w-3.5"></i>
+            Template Peserta
+          </button>
+
+          <button type="button" onclick="downloadTemplateKamar()" class="action-mini flex-1">
+            <i data-lucide="layout-list" class="h-3.5 w-3.5"></i>
+            Template Kamar
+          </button>
+
+          <button type="button" onclick="resetData()" class="action-mini danger">
+            <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+          </button>
+        </div>
+      </section>
+    </aside>
+
+    <!-- MAIN -->
+    <main id="mainContent" class="main-content min-w-0 flex-1 overflow-y-auto">
+      <!-- Stats -->
+      <section class="border-b border-base-200 bg-white px-4 py-4 sm:px-6">
+        <div class="flex gap-2 overflow-x-auto pb-1">
+          <div class="stat-pill bg-base-50 border-base-200">
+            <div class="stat-icon bg-base-200 text-base-600">
+              <i data-lucide="users" class="h-4 w-4"></i>
+            </div>
+            <div>
+              <p class="stat-label text-base-400">Total</p>
+              <p id="totalPeserta" class="stat-number text-base-900">0</p>
+            </div>
+          </div>
+
+          <div class="stat-pill bg-teal-50 border-teal-100">
+            <div class="stat-icon bg-teal-100 text-teal-700">
+              <i data-lucide="user" class="h-4 w-4"></i>
+            </div>
+            <div>
+              <p class="stat-label text-teal-600">Laki-laki</p>
+              <p id="totalLaki" class="stat-number text-teal-700">0</p>
+            </div>
+          </div>
+
+          <div class="stat-pill bg-indigo-50 border-indigo-100">
+            <div class="stat-icon bg-indigo-100 text-indigo-700">
+              <i data-lucide="user" class="h-4 w-4"></i>
+            </div>
+            <div>
+              <p class="stat-label text-indigo-600">Perempuan</p>
+              <p id="totalPerempuan" class="stat-number text-indigo-700">0</p>
+            </div>
+          </div>
+
+          <div class="stat-pill bg-amber-50 border-amber-100">
+            <div class="stat-icon bg-amber-100 text-amber-700">
+              <i data-lucide="building" class="h-4 w-4"></i>
+            </div>
+            <div>
+              <p class="stat-label text-amber-600">Kamar</p>
+              <p id="totalKamarTerdaftar" class="stat-number text-amber-700">0</p>
+            </div>
+          </div>
+
+          <div class="stat-pill bg-emerald-50 border-emerald-100">
+            <div class="stat-icon bg-emerald-100 text-emerald-700">
+              <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+            </div>
+            <div>
+              <p class="stat-label text-emerald-600">Terpakai</p>
+              <p id="totalKamarTerpakai" class="stat-number text-emerald-700">0</p>
+            </div>
+          </div>
+
+          <div class="stat-pill bg-rose-50 border-rose-100">
+            <div class="stat-icon bg-rose-100 text-rose-700">
+              <i data-lucide="alert-circle" class="h-4 w-4"></i>
+            </div>
+            <div>
+              <p class="stat-label text-rose-600">Belum Dapat</p>
+              <p id="totalBelumDapatKamar" class="stat-number text-rose-700">0</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="space-y-5 p-4 pb-32 sm:p-6 lg:pb-6">
+        <!-- Validation -->
+        <div id="hasilValidasi" class="validation-box neutral">
+          <div class="flex items-start gap-3">
+            <div class="validation-icon">
+              <i data-lucide="info" class="h-4 w-4"></i>
+            </div>
+            <div>
+              <p class="mb-0.5 font-bold text-base-800">Status Validasi</p>
+              <p class="text-sm leading-relaxed text-base-600">
+                Belum ada data yang diproses. Upload file peserta dan kamar, lalu klik
+                <span class="font-bold text-teal-700">Proses Pembagian</span>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Capacity -->
+        <div id="summaryCapacity" class="hidden rounded-2xl border border-base-200 bg-white p-4 shadow-sm"></div>
+
+        <!-- Table -->
+        <div class="overflow-hidden rounded-2xl border border-base-200 bg-white shadow-sm">
+          <div class="flex flex-col gap-3 border-b border-base-100 px-4 py-3 sm:flex-row sm:items-center sm:px-5">
+            <div class="flex items-center gap-2">
+              <i data-lucide="table-2" class="h-4 w-4 text-base-400"></i>
+              <h2 class="text-sm font-extrabold text-base-800">Data Hasil Pembagian</h2>
+              <span id="showingCount" class="rounded-full bg-base-100 px-2 py-0.5 text-[10px] font-extrabold text-base-500">0</span>
+              <span class="text-[10px] text-base-400">/</span>
+              <span id="totalCount" class="text-[10px] font-extrabold text-base-500">0</span>
+            </div>
+
+            <div class="flex-1"></div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="relative">
+                <i data-lucide="search" class="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-base-400"></i>
+                <input id="filterSearch" type="text" placeholder="Cari..." oninput="applyFilters()" class="input-app w-40 py-1.5 pl-8 pr-3 text-xs sm:w-56" />
+              </div>
+
+              <select id="filterGender" onchange="applyFilters()" class="input-app w-auto py-1.5 text-xs">
+                <option value="">Gender</option>
+                <option value="Laki-laki">Lk</option>
+                <option value="Perempuan">Pr</option>
+                <option value="invalid">Invalid</option>
+              </select>
+
+              <select id="filterStatus" onchange="applyFilters()" class="input-app w-auto py-1.5 text-xs">
+                <option value="">Status</option>
+                <option value="OK">OK</option>
+                <option value="Error">Error</option>
+                <option value="Warning">Warning</option>
+                <option value="kosong">Kosong</option>
+              </select>
+
+              <select id="filterKamar" onchange="applyFilters()" class="input-app w-auto py-1.5 text-xs">
+                <option value="">Kamar</option>
+                <option value="belum">Belum</option>
+              </select>
+
+              <button type="button" onclick="resetFilters()" class="rounded-lg p-1.5 text-base-400 transition hover:bg-base-100 hover:text-base-600" title="Reset filter">
+                <i data-lucide="x" class="h-4 w-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="activeFilters" class="hidden flex-wrap gap-1.5 border-b border-base-100 bg-base-50/60 px-5 py-2"></div>
+
+          <div class="overflow-x-auto">
+            <table class="data-table min-w-full">
+              <thead>
+                <tr>
+                  <th class="w-14 px-4 py-3 text-left">No</th>
+                  <th class="min-w-[220px] px-4 py-3 text-left">Nama</th>
+                  <th class="min-w-[150px] px-4 py-3 text-left">Jabatan</th>
+                  <th class="min-w-[150px] px-4 py-3 text-left">Asal Kecamatan</th>
+                  <th class="min-w-[100px] px-4 py-3 text-left">Kelas</th>
+                  <th class="min-w-[120px] px-4 py-3 text-left">Jenis Kelamin</th>
+                  <th class="min-w-[100px] px-4 py-3 text-left">No Kamar</th>
+                  <th class="min-w-[170px] px-4 py-3 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody id="tabelBody">
+                <tr>
+                  <td colspan="8" class="px-5 py-14 text-center">
+                    <div class="flex flex-col items-center gap-2">
+                      <div class="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-base-300 bg-base-100">
+                        <i data-lucide="inbox" class="h-5 w-5 text-base-400"></i>
+                      </div>
+                      <p class="text-sm font-semibold text-base-500">Belum ada data</p>
+                      <p class="text-xs text-base-400">Upload file peserta dan kamar untuk memulai</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <footer class="pb-4 pt-2 text-center text-xs text-base-400">
+          Sistem Pembagian Kamar Pelatihan • BPS Kabupaten Garut
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <!-- Mobile Bottom Action Bar -->
+  <nav class="mobile-action-bar lg:hidden">
+    <div class="grid grid-cols-3 gap-2">
+      <button type="button" onclick="prosesSemuaFile()" id="btnProsesMobile" class="mobile-main-btn col-span-3">
+        <i data-lucide="play" class="h-4 w-4 fill-current"></i>
+        Proses Pembagian
+      </button>
+
+      <button type="button" onclick="downloadTemplatePeserta()" class="mobile-sub-btn">
+        <i data-lucide="file-text" class="h-4 w-4"></i>
+        Peserta
+      </button>
+
+      <button type="button" onclick="downloadTemplateKamar()" class="mobile-sub-btn">
+        <i data-lucide="layout-list" class="h-4 w-4"></i>
+        Kamar
+      </button>
+
+      <button type="button" onclick="openPreviewDownload()" class="mobile-sub-btn">
+  <i data-lucide="download" class="h-4 w-4"></i>
+  Export
+</button>
+    </div>
+  </nav>
+<!-- Preview Download Modal -->
+<div id="previewDownloadModal" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div class="flex items-start justify-between gap-4 border-b border-base-200 p-5">
+      <div>
+        <h3 class="text-lg font-extrabold text-base-900">Preview Export Roomlist</h3>
+        <p class="mt-1 text-sm text-base-500">
+          Cek ringkasan data sebelum file Excel didownload.
+        </p>
+      </div>
+
+      <button type="button" onclick="closePreviewDownload()" class="modal-close-btn">
+        <i data-lucide="x" class="h-5 w-5"></i>
+      </button>
+    </div>
+
+    <div class="space-y-4 p-5">
+      <div id="previewDownloadSummary" class="grid grid-cols-2 gap-3 sm:grid-cols-3"></div>
+
+      <div id="previewDownloadWarning" class="hidden rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"></div>
+
+      <div class="rounded-xl border border-base-200 bg-base-50 p-3">
+        <p class="mb-2 text-xs font-extrabold uppercase tracking-wider text-base-400">
+          Pilihan Export
+        </p>
+
+        <div class="grid gap-2">
+          <button type="button" onclick="downloadExcel('all')" class="export-option-btn">
+            <div>
+              <p class="font-extrabold">Download Semua Data</p>
+              <p class="text-xs text-base-500">Berisi seluruh hasil pembagian kamar.</p>
+            </div>
+            <i data-lucide="download" class="h-5 w-5 text-emerald-600"></i>
+          </button>
+
+          <button type="button" onclick="downloadExcel('error')" class="export-option-btn">
+            <div>
+              <p class="font-extrabold">Download Error Saja</p>
+              <p class="text-xs text-base-500">Berisi peserta yang bermasalah atau belum valid.</p>
+            </div>
+            <i data-lucide="alert-circle" class="h-5 w-5 text-rose-600"></i>
+          </button>
+
+          <button type="button" onclick="downloadExcel('belum')" class="export-option-btn">
+            <div>
+              <p class="font-extrabold">Download Belum Dapat Kamar</p>
+              <p class="text-xs text-base-500">Berisi peserta yang belum mendapat nomor kamar.</p>
+            </div>
+            <i data-lucide="door-open" class="h-5 w-5 text-amber-600"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 border-t border-base-200 p-5">
+      <button type="button" onclick="closePreviewDownload()" class="modal-cancel-btn">
+        Batal
+      </button>
+    </div>
+  </div>
+</div>
+  <script src="script.js"></script>
+</body>
+</html>
