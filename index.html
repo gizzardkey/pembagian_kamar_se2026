@@ -89,11 +89,34 @@
 
     /* Mobile sidebar toggle */
     @media (max-width: 1024px) {
-      .sidebar { position: fixed; z-index: 40; transform: translateX(-100%); height: 100vh; }
-      .sidebar.open { transform: translateX(0); }
-      .sidebar-overlay { display: none; }
-      .sidebar-overlay.show { display: block; }
-    }
+  .sidebar {
+    position: fixed;
+    z-index: 40;
+    transform: translateX(-100%);
+    height: 100dvh;
+    max-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: none;
+  }
+
+  .sidebar-overlay.show {
+    display: block;
+  }
+
+  .sidebar > div:last-child {
+    margin-top: 0 !important;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+}
   </style>
 <base target="_blank">
 </head>
@@ -254,7 +277,7 @@
       </div>
 
       <!-- Action Buttons -->
-      <div class="px-6 py-4 border-t border-base-100 mt-auto">
+      <div class="px-6 py-4 border-t border-base-100 lg:mt-auto">
         <div class="grid grid-cols-2 gap-2 mb-2">
           <button onclick="prosesSemuaFile()" id="btnProses" class="action-btn col-span-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-semibold text-sm shadow-lg shadow-teal-500/20">
             <i data-lucide="play" class="w-4 h-4 fill-current"></i>
